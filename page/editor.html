@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8" />
+    <title>博客文章编辑</title>
+    <link rel="stylesheet" href="./edite/css/style.css" />
+    <link rel="stylesheet" href="./edite/css/editormd.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        .article-item {
+            padding: 10px 80px;
+        }
+
+        .content {
+            height: 30px;
+            line-height: 30px;
+            font-size: 16px;
+            vertical-align: -8px;
+            padding: 0px 10px;
+        }
+
+        #cover {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 999;
+            opacity: 0.3;
+            left: 0;
+            top: 0
+        }
+
+        #cover img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+        }
+
+        #layout {
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+
+        #type {
+            display: inline-block;
+            width: 200px;
+            height: 32px;
+            line-height: 32px;
+            margin-left: 15px;
+            font-size: 13px
+        }
+
+        .upload-image {
+            display: none;
+            position: fixed;
+            z-index: 99;
+            border: 1px solid #ddd;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ddd;
+        }
+
+        .upload-image .col-md-12 {
+            padding: 10px 0px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .upload-image h4 {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0px;
+        }
+
+        .upload-image .col-md-12 input {
+            display: inline-block;
+        }
+
+        .row.show-img {
+            text-align: center;
+        }
+
+        .row.show-img img {
+            width: 100%;
+            max-height: 400px;
+        }
+        .img-list{
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 style="text-align: center"> 云智后台管理系统 <small>博客管理</small></h2>
+        <ul class="nav nav-tabs">
+            <li role="presentation" class="active"><a href="">文章发布</a></li>
+            <li role="presentation"><a href="./manage.html">文章管理</a></li>
+            <li role="presentation"><a href="#">评论管理</a></li>
+            <li role="presentation" ><a href="./manageImage.html">图片管理</a></li>
+            <li role="presentation" ><a href="./friendLink.html">友情链接</a></li>
+        </ul>
+
+    </div>
+    <div id="layout">
+        <div class="article-item">
+            <label for="title">文章标题：</label>
+            <textarea id="title" style="margin-left:13px; " class="content" cols="100" rows="1"></textarea>
+        </div>
+        <div class="article-item">
+            <label for="tags">文章关键字：</label>
+            <textarea id="tags" class="content" cols="100" rows="1"></textarea>
+        </div>
+        <div class="article-item">
+            <label for="type">文章类型：</label>
+            <select id="type" class="form-control">
+                <option value=""></option>
+            </select>
+          
+        </div>
+        <div class="article-item">
+                <label for="tags">上传图片：</label>
+                <button class="btn btn-default" id="uploadImage">点击上传</button>
+                <span class="img-list">图片上传列表：</span> 
+                <input id="blog_image" type="text" value=""/>
+            </div>
+        <div id="test-editor">
+            <textarea id="test-content" style="display:none;">
+            </textarea>
+        </div>
+        <div style="text-align: center">
+            <button id="save" class="btn">发表文章</button>
+        </div>
+        <div id="cover">
+            <img src="./images/loading@2x.gif" alt="" srcset="">
+        </div>
+    </div>
+    <div class="container upload-image">
+        <h4>
+            图片上传
+        </h4>
+        <div class="row">
+            <div class="col-md-12">
+                <span> 插入图片：</span>
+                <input type="file" id="uploadBlogImg">
+                <span> 图片名称：</span>
+                <input type="text" id="imageName">
+                <button class="btn btn-default" id="uploadBtn">上传</button>
+            </div>
+        </div>
+        <div class="row show-img">
+            <h4>
+                图片预览
+            </h4>
+            <h5 id="imag-path">
+                图片路径：
+            </h5>
+            <div class="col-md-8 col-md-offset-2">
+                <img id="previewImg" src="./images/image-default.jfif" alt="" srcset="">
+                <div style="margin-top:10px ">
+                    <button class="btn btn-default" id="deleteImage">
+                        删除图片
+                    </button>
+                    <button class="btn btn-default" id="exit">
+                            退出
+                        </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script src="./edite/js/jquery.min.js"></script>
+    <script src="./edite/js/editormd.min.js"></script>
+    <script type="text/javascript">
+        var testEditor;
+        $(function () {
+            testEditor = editormd("test-editor", {
+                width: "90%",
+                height: 540,
+                syncScrolling: "single",
+                path: "./edite/lib/"
+            });
+            $.ajax({
+                method: 'GET',
+                url: '/getAticleTypeList',
+                success: function (res) {
+                    var data = JSON.parse(res).data,
+                        htmlStr = '<option value="0" >--请选择文章类型--</option>';
+                    for (var i = 0; i < data.length; i++) {
+                        htmlStr += '<option ' + 'value="' + (data[i].id) + '">' + data[i].type + '</option>'
+                    }
+                    $('#type').html(htmlStr);
+                },
+                error: function (err) {
+                    console.log(err)
+                }
+            })
+        });
+        $('#save').on('click', function () {
+
+            var obj = {
+                content: $('.markdown-body.editormd-preview-container').html(),
+                title: $('#title').val(),
+                tags: $('#tags').val(),
+                type: +$('#type').val(),
+            };
+            for (var key in obj) {
+                if (!obj[key]) {
+                    alert('文章的 ' + key + '不能为空！');
+                    return;
+                }
+            }
+            obj.imageId = $('#blog_image').val();
+            $('#cover').show();
+            $.ajax({
+                method: 'POST',
+                timeout: 5000,
+                url: '/api/addArticle',
+                data: obj,
+                success: function (res) {
+                    res = JSON.parse(res);
+                    alert(res.info);
+                    $('#cover').hide();
+                    $('.markdown-body.editormd-preview-container').html('');
+                    $('#title').val('');
+                    $('#tags').val('');
+                    $('#type').val(0);
+                },
+                error: function (res) {
+                    console.log(res)
+                    $('#cover').hide();
+                }
+            })
+        })
+        $('#exit').click(function(){
+           $(".container.upload-image").fadeOut();
+        })
+       //上传图片弹窗
+        $('#uploadImage').click(function(){
+           $(".container.upload-image").fadeIn();
+        })
+        //上传图片
+        $('#uploadBtn').click(function(){
+          var file =  $('#uploadBlogImg').get(0).files[0];
+          var form = new FormData();
+          var name = $('#imageName').val();
+          if(!file || !name){
+              alert('请输入完成信息！');
+              return;
+          }
+          form.append('image',file);
+          form.append('imageName',name);
+          if(file.size > 1024*1024*4)//文件大于4M
+          {
+              alert('上传文件过大！');
+            return;
+          }
+          var reg = /.png|.jpg|.gif$/;
+          if(!reg.test(file.name)){
+              alert('文件类型必须是.jpg,.png,.gif格式！');
+              return;
+          }
+         $.ajax({
+             method:'POST',
+             url:'/api/uploadImage',
+             data:form,
+             timeout:5000,
+             dataType:"json",
+             processData:false,
+             contentType:false,
+             cache:false,
+             success:function(res){
+                $("#imag-path").text('/getImage?path='+res.data.path);
+               $('#previewImg').prop('src','/getImage?path='+res.data.path);
+               $('#previewImg').data('id',res.data.insertId);
+              var imageId = $('#blog_image').val();
+              if(imageId){
+                  imageId = imageId+ '&'+res.data.insertId;
+              }else{
+                  imageId = res.data.insertId
+              }
+              $('#blog_image').val(imageId);
+             },
+             error:function(err){
+                console.log(err)
+             }
+         })
+        })
+       //删除
+        $('#deleteImage').click(function(){
+            var id =   $('#previewImg').data('id');
+            if(id){
+                $.ajax({
+                    method:'POST',
+                    url:'/api/deleteImage',
+                    data:{id:id},
+                    timeout:5000,
+             dataType:"json",
+             success:function(res){
+               if(res.data && res.data.affectedRows){
+                   alert('图片删除成功！');
+                   $("#imag-path").text('');
+                   $('#previewImg').prop('src',"./images/image-default.jfif");
+               }else{
+                   alert('图片删除失败！')
+               }
+             },
+             error:function(res){
+                console.log(res);
+             }
+                })
+            }else{
+                alert('暂时没有需要删除的图片！');
+            }
+        })
+   </script>
+</body>
+
+</html>

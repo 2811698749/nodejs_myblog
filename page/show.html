@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<link rel="stylesheet" href="./edite/css/style.css" />
+<link rel="stylesheet" href="./edite/css/editormd.css" />
+<body>
+    <div id="content" class="markdown-body editormd-preview-container" previewcontainer="true" style="padding: 20px;width: 50%">
+    </div>
+    <script src="./edite/js/jquery.min.js"></script>
+    <script>
+        $(function(){
+            $.ajax({
+                type:'GET',
+                timeout:5000,
+                data:{
+                    id:2
+                },
+                url:'/getArticleList',
+                success:function(res){
+                    var articleList = JSON.parse(res);
+                    $('#content').html(articleList[4].content)
+                }
+            })
+        })
+    </script>
+</body>
+
+</html>

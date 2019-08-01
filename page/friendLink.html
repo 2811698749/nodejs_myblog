@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>后台管理</title>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+
+        .pagination>li>a.btn-active {
+            color: #fff !important;
+            background-color: #5bc0de !important;
+            /* border-color: #46b8da; */
+        }
+
+        .container table {
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            border-top: none;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container">
+        <h2 style="text-align: center"> 云智后台管理系统 <small>博客管理</small></h2>
+        <ul class="nav nav-tabs">
+            <li role="presentation"><a href="./editor.html">文章发布</a></li>
+            <li role="presentation"><a href="./manage.html">文章管理</a></li>
+            <li role="presentation"><a href="./comments.html">评论管理</a></li>
+            <li role="presentation"><a href="./manageImage.html">图片管理</a></li>
+            <li role="presentation" class="active"><a href="#">友情链接</a></li>
+        </ul>
+        <div class="row" id="blog_type">
+            <h3 style="text-align: center">文章类型管理</h3>
+            <form class="form-inline" v-on:submit.prevent="onSubmit" style="margin: 10px 0px">
+                <div class="form-group">
+                    <label for="type_name">文章类型：</label>
+                    <input type="text" v-model.lazy.trim="type_name" class="form-control" id="type_name"
+                        placeholder="请输入文章类型">
+                </div>
+                <button type="submit" class="btn btn-default" >添加</button>
+            </form>
+            <table class="table table-hover" id="blog-type">
+                <th>id</th>
+                <th>type</th>
+                <th>操作</th>
+                <tr v-for='(type,index) of typeList' :key='type.id'  v-cloak>
+                    <td>{{ type.id }}</td>
+                    <td>{{ type.type }}</td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-xs"
+                            v-on:click='handleClick(type.id,index)'>删除</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="row" id="addFriendLink" style="margin: 10px 0px">
+            <h3 style="text-align: center">友情链接列表</h3>
+            <form class="form-inline" v-on:submit.prevent="onSubmit">
+                <div class="form-group">
+                    <label for="urlName">网站名称：</label>
+                    <input type="text" v-model.lazy.trim="link_text" class="form-control" id="urlName"
+                        placeholder="中文名">
+                </div>
+                <div class="form-group">
+                    <label for="link_url">链接地址：</label>
+                    <input type="text" v-model.lazy.trim="link_url" class="form-control" id="link_url"
+                        placeholder="链接地址">
+                </div>
+                <button type="submit" class="btn btn-default">添加</button>
+            </form>
+        </div>
+
+        <div class="row" id="friend-table">
+
+            <table class="table table-hover">
+                <th>id</th>
+                <th>链接内容</th>
+                <th>链接网址</th>
+                <th>日期</th>
+                <th>操作</th>
+                <tr v-for='(friend,index) of friendList' :key='friend.id' v-cloak>
+                    <td>{{ friend.id }}</td>
+                    <td>{{ friend.link_text }}</td>
+                    <td>{{ friend.link_url }}</td>
+                    <td>{{ convertFormDate(+friend.ctime*1000)  }}</td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-xs"
+                            v-on:click='handleClick(friend.id,index)'>删除</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        var addFriendly = new Vue({
+            el: '#addFriendLink',
+            data: {
+                link_text: '',
+                link_url: ''
+            },
+            methods: {
+                onSubmit: function () {
+                    if (!this.link_text || !this.link_url) {
+
+                        alert('请输入完成的内容！');
+                        return;
+                    }
+                    var self = this;
+                    axios.post(
+                        'api/addFriendLink', {
+                            params: {
+                                link_text: self.link_text,
+                                link_url: self.link_url
+                            }
+                        }
+                    ).then(function (res) {
+                        if (res.data &&
+                            res.data.data &&
+                            res.data.data.affectedRows) {
+                            alert('添加成功！');
+                            self.link_text = self.link_url = '';
+                            list.getFreidlyLinkList();
+                        }
+                    })
+                }
+            }
+        });
+        var list = new Vue({
+            el: '#friend-table',
+            data: {
+                friendList: []
+            },
+            mounted: function () {
+                this.getFreidlyLinkList();
+            },
+            methods: {
+                convertFormDate: function (num) {
+                    function dFormat(i) { return i < 10 ? "0" + i : i; };
+                    var date = new Date(num);
+                    return date.getFullYear() + '-' + dFormat(date.getMonth() + 1) + '-' +
+                        dFormat(date.getDate());
+                    // + ' ' + dFormat(date.getHours()) +
+                    // ':' + dFormat(date.getMinutes())
+                    // + ':' + dFormat(date.getSeconds());
+                },
+                handleClick: function (id, index) {
+                    if (confirm('确认删除id为' + id + '的文章吗？'));
+                    var self = this;
+                    axios.post('/api/delFriend', {
+                        params: {
+                            id: id
+                        }
+                    }).then(function (res) {
+                        self.friendList.splice(index, index + 1);
+                        alert(res.data.text)
+                    })
+                },
+                getFreidlyLinkList: function (num) {
+                    console.log(num);
+                    var self = this;
+                    axios.get('/getFreidlyLinkList').then(function (res) {
+                        self.friendList = res.data.data;
+                    })
+                }
+            }
+        })
+        var typeList = new Vue({
+            el: "#blog_type",
+            data: {
+                type_name: '',
+                typeList: [],
+            },
+            mounted() {
+                this.getTypeList();
+            },
+            methods: {
+                getTypeList: function () {
+                    var self = this;
+                    axios.get('/getAticleTypeList').then(function (res) {
+                        self.typeList = res.data.data;
+                    })
+                },
+                onSubmit:function(){
+                    console.log(this.type_name);
+                //暂时不添加此功能
+                }
+            }
+        })
+
+    </script>
+</body>
+
+</html>

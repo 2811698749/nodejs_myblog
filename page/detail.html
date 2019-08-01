@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8" />
+    <title>博客文章修改</title>
+    <link rel="stylesheet" href="./edite/css/style.css" />
+    <link rel="stylesheet" href="./edite/css/editormd.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        .article-item {
+            padding: 10px 80px;
+        }
+
+        .content {
+            height: 30px;
+            line-height: 30px;
+            font-size: 16px;
+            vertical-align: -8px;
+            padding: 0px 10px;
+        }
+
+        #cover {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 999;
+            opacity: 0.3;
+            left: 0;
+            top: 0
+        }
+
+        #cover img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+        }
+
+        #layout {
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+
+        #type {
+            display: inline-block;
+            width: 200px;
+            height: 32px;
+            line-height: 32px;
+            margin-left: 15px;
+            font-size: 13px
+        }
+
+        #content {
+            width: 100%;
+
+            border-bottom: 1px solid #ddd;
+        }
+
+        .article-item span {
+            margin-right: 20px;
+        }
+
+        .temp {
+            display: none;
+        }
+
+        th {
+            text-align: center
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 style="text-align: center"> 云智后台管理系统 <small>博客管理</small></h2>
+        <ul class="nav nav-tabs">
+            <li role="presentation"><a href="./editor.html">文章发布</a></li>
+            <li role="presentation"><a href="./manage.html">文章管理</a></li>
+            <li role="presentation"><a href="./comments.html">评论管理</a></li>
+            <li role="presentation" class="active"><a href="">文章修改</a></li>
+            <li role="presentation"><a href="./manageImage.html">图片管理</a></li>
+            <li role="presentation"><a href="./friendLink.html">友情链接</a></li>
+        </ul>
+        <h4 style="text-align: left;  border-bottom:1px solid #ddd;padding:10px 0; ">
+            文章内容:
+        </h4>
+        <div id="content" class="markdown-body editormd-preview-container" previewcontainer="true"
+            style="padding: 20px;width: 50%">
+        </div>
+    </div>
+    <div id="layout">
+        <div class="article-item">
+            <label for="title">文章标题：</label>
+            <textarea id="title" style="margin-left:13px; " class="content" cols="100" rows="1"></textarea>
+        </div>
+        <div class="article-item">
+            <label for="tags">文章关键字：</label>
+            <textarea id="tags" class="content" cols="100" rows="1"></textarea>
+        </div>
+        <div class="article-item">
+            <label for="type">文章类型：</label>
+            <select id="type" class="form-control">
+                <option value=""></option>
+            </select>
+        </div>
+        <div class="article-item">
+            <span id="article-views">
+
+            </span>
+            <span id="article-ctime">
+
+            </span>
+            <span id="article-utime">
+
+            </span>
+            <span id="article-comments">
+
+            </span>
+        </div>
+        <!-- <div id="test-editormd">
+            <textarea id="test-content" style="display:none;">
+                </textarea>
+        </div> -->
+
+        <div style="text-align: center">
+            <button id="save" class="btn btn-default">修改文章</button>
+        </div>
+
+        <div id="cover">
+            <img src="./images/loading@2x.gif" alt="" srcset="">
+        </div>
+    </div>
+    <div class="container">
+        <h3 id="comment-title">
+            关于本文章评论列表
+        </h3>
+        <table class="table table-striped" id="comment-list">
+            <tr>
+                <th>id</th>
+                <th>昵称</th>
+                <th>评论</th>
+                <th>回复</th>
+                <th>邮箱</th>
+                <th>时间</th>
+                <th>操作</th>
+            </tr>
+            <tr class="temp">
+                <td>1</td>
+                <td>sfdsfd</td>
+                <td>dfsdsfdsafsf</td>
+                <td>213</td>
+                <td>dfsasf@qq.com</td>
+                <td>2018-09-19</td>
+                <td><button class="btn btn-default btn-xs">删除</button></td>
+            </tr>
+        </table>
+    </div>
+    <script src="./edite/js/jquery.min.js"></script>
+    <!-- <script src="./edite/js/editormd.min.js"></script> -->
+    <script type="text/javascript">
+        var testEditor;
+        var idblog = window.location.search.split('=')[1];
+        function convertFormDate(num) {
+            function dFormat(i) { return i < 10 ? "0" + i : i; };
+            var date = new Date(num);
+            return date.getFullYear() + '-' + dFormat(date.getMonth() + 1) + '-' +
+                dFormat(date.getDate());
+            // + ' ' + dFormat(date.getHours()) +
+            // ':' + dFormat(date.getMinutes())
+            // + ':' + dFormat(date.getSeconds());
+        };
+        $(function () {
+            // testEditor = editormd("test-editormd", {
+            //     width: "90%",
+            //     height: 540,
+            //     syncScrolling: "single",
+            //     path: "./edite/lib/"
+            // });
+            $.ajax({
+                method: 'GET',
+                url: '/getAticleTypeList',
+                success: function (res) {
+                    var data = JSON.parse(res).data,
+                        htmlStr = '<option value="0" >--请选择文章类型--</option>';
+                    for (var i = 0; i < data.length; i++) {
+                        htmlStr += '<option ' + 'value="' + (data[i].id) + '">' + data[i].type + '</option>'
+                    }
+                    $('#type').html(htmlStr);
+                },
+                error: function (err) {
+                    console.log(err)
+                }
+            })
+            //获取文章
+
+            $.ajax({
+                method: 'GET',
+                url: '/getArticle',
+                data: {
+                    idblog: idblog
+                },
+                success: function (res) {
+                    var data = JSON.parse(res).data;
+                    setTimeout(function () {
+                        $('.markdown-body.editormd-preview-container').html(data[0].content);
+                    }, 500)
+                    $('#title').val(data[0].title);
+                    $('#tags').val(data[0].tags);
+                    $('#type option').each(function (index, ele) {
+                        if (ele.innerText == data[0].type) {
+                            $('#type').val(index)
+                        }
+                    })
+                    $('#article-views').text('文章浏览量：' + data[0].views);
+                    $('#article-ctime').text('  文章创建时间：' + new Date(data[0].ctime * 1000).toLocaleDateString());
+                    $('#article-utime').text('  文章修改时间：' + new Date(data[0].utime * 1000).toLocaleDateString());
+                    $('#article-comments').text('评论：' + data[0].comments);
+                },
+                error: function (err) {
+                    console.log(err)
+                }
+            })
+            //获取评论列表
+            $.ajax({
+                method: 'GET',
+                url: '/getCommentsList',
+                data: {
+                    perCount: 1000,
+                    idblog: idblog,
+                    activeIndex: 1
+                },
+                dataType: 'json',
+                success: function (res) {
+                    var $table = $('#comment-list');
+                    var $temp = $table.find('.temp');
+                    if (!res.length) {
+                        $('#comment-title').text('暂无评论');
+                    }
+                    for (var i = 0; i < res.length; i++) {
+                        $temp.clone().removeClass('temp')
+                            .find('td')
+                            .eq(0).text(res[i].id)
+                            .next().text(res[i].user_name)
+                            .next().text(res[i].commits)
+                            .next().text(res[i].parent_id)
+                            .next().text(res[i].email)
+                            .next().text(convertFormDate(res[i].ctime * 1000))
+                            .next().find('button').data('commentId', res[i].id).end()
+                            .parent()
+                            .appendTo($table);
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            })
+        });
+        $('#save').on('click', function () {
+            var obj = {
+                title: $('#title').val(),
+                tags: $('#tags').val(),
+                type: +$('#type').val(),
+                idblog: idblog
+            };
+            for (var key in obj) {
+                if (!obj[key]) {
+                    alert('文章的 ' + key + '不能为空！');
+                    return;
+                }
+            }
+            $('#cover').show();
+            $.ajax({
+                method: 'POST',
+                timeout: 5000,
+                url: '/api/updateAticle',
+                data: obj,
+                success: function (res) {
+                    res = JSON.parse(res);
+                    alert(res.text);
+                    $('#cover').hide();
+                    console.log(res);
+                    window.location.reload()
+                },
+                error: function (res) {
+                    if (confirm('请跳转至登录界面？')) {
+                        window.location.href = './login.html';
+                    }
+                    $('#cover').hide();
+                }
+            })
+        })
+        $('#comment-list').on('click', '.btn-xs', function (e) {
+            var id = $(e.target).data('commentId');
+            $.ajax({
+                url: '/api/deleteComentById',
+                data: {
+                    id: id
+                },
+                method: 'POST',
+                dataType: 'json',
+                success: function (res) {
+                    if (res.affectedRows) {
+                        alert('删除成功！');
+                        $(e.target).parent().parent().remove();
+                    }
+                },
+                error: function (err) {
+                    console.log(err)
+                }
+            })
+        })
+    </script>
+</body>
+
+</html>

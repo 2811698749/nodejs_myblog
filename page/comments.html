@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>后台管理</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+
+        .pagination>li>a.btn-active {
+            color: #fff !important;
+            background-color: #5bc0de !important;
+            /* border-color: #46b8da; */
+        }
+
+        .container table {
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            border-top: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 style="text-align: center"> 云智后台管理系统 <small>博客管理</small></h2>
+        <ul class="nav nav-tabs">
+            <li role="presentation"><a href="./editor.html">文章发布</a></li>
+            <li role="presentation"><a href="./manage.html">文章管理</a></li>
+            <li role="presentation" class="active"><a href="">评论管理</a></li>
+            <li role="presentation"><a href="./manageImage.html">图片管理</a></li>
+            <li role="presentation"><a href="./friendLink.html">友情链接</a></li>
+        </ul>
+        <div class="row" id="comments">
+            <h3 style="text-align: center">评论管理</h3>
+            <page-component :page='page' v-on:getdata="getCommentsList"></page-component>
+            <table class="table table-bordered" >
+                <tr>
+                    <th> id</th>
+                    <th> 评论内容 </th>
+                    <th>评论博客</th>
+                    <th>回复id</th>
+                    <th>用户昵称</th>
+                    <th>邮箱</th>
+                    <th>日期</th>
+                    <th>操作</th>
+                </tr>
+                <tr v-for="(comment,index) of commentsList" v-cloak>
+                    <td>{{comment.id}}</td>
+                    <td>{{comment.commits}}</td>
+                    <td>{{comment.idblog}}</td>
+                    <td>{{comment.parent_id}}</td>
+                    <td>{{comment.user_name}}</td>
+                    <td>{{comment.email}}</td>
+                    <td>{{ convertFormDate(comment.ctime*1000) }}</td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-xs"
+                            v-on:click='handleClick(comment,index)'>删除</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        var pageComponent = {
+            props: ['page'],
+            template: '<nav aria-label="Page navigation">\
+                <ul class="pagination">\
+                    <li><a  class="btn" @click.stop.prevent="handleLeftClick">\
+                    <span aria-hidden="true">&laquo;</span></a></li>\
+                    <li><a  class="btn" :class="{\'btn-active\':1==activeIndex}"\
+                        v-on:click.stop.prevent="handleClick(1)">1\
+                        </a></li>\
+                    <li v-for="(text,index) of btnText" :key="index">\
+                        <a class="btn" v-on:click.stop.prevent="handleClick(text)"\
+                         :class="{\'btn-active\':text==activeIndex}"\
+                        v-if="parseInt(text) <= totalPage || text ==\'...\'"\
+                        :key="index"\
+                        style="width:40px">\
+                            {{ text }}\
+                        </a></li><li>\
+                        <a  class="btn" @click.stop.prevent="handleRightClick">\
+                            <span >&raquo;</span>\
+                        </a></li><li style="display: inline-block; margin-left:30px; ">\
+                        <span>当前第{{ activeIndex }}页 共{{ this.totalPage }}页\
+                                共{{this.page.totalCount}}条数据\
+                        </span>\
+                    </li></ul></nav>',
+            data: function () {
+                return {
+                    startIndex: 2,
+                    activeIndex: 1
+                }
+            },
+            computed: {
+                totalPage: function () {
+                    return Math.ceil(this.page.totalCount / this.page.perCount);
+                },
+                btnText: function () {
+                    var arr = [];
+                    for (var i = 0; i < this.page.btnGroup - 1; i++) {
+                        if (i == 0 && this.startIndex > 2) {
+                            arr.push('...');
+                        } else {
+                            arr.push(this.startIndex + i);
+                        }
+                    }
+                    return arr;
+                }
+            },
+            methods: {
+                handleClick: function (text) {
+                    if (text == '...' || text == this.activeIndex) return;
+                    this.activeIndex = text;
+                    if(text == '1'){
+                        this.startIndex =2;
+                    }
+                    this.$emit('getdata', text)
+                },//向左移动
+                handleLeftClick: function () {
+                    if (this.startIndex == 2) return;
+                    this.startIndex--;
+                },
+                handleRightClick: function () {
+                    if (this.startIndex + this.page.btnGroup > this.totalPage + 1) {
+                        return;
+                    }
+                    this.startIndex++;
+                }
+            }
+        }
+        var vueIns = new Vue({
+            el: '#comments',
+            data: {
+                page: {
+                    perCount: 8,
+                    totalCount: 200,
+                    btnGroup: 10,
+                },
+                commentsList: [{
+                    id: 1,
+                    commits: '1撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨1',
+                    parent_id: '13',
+                    idblog: '34',
+                    user_name: '萨芬大师傅就',
+                    ctime: 1564041671,
+                    email: '29824283@afa.com'
+                }, {
+                    id: 2,
+                    commits: '1撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒费的骨1',
+                    parent_id: '13',
+                    idblog: '34',
+                    user_name: '萨芬大师傅就',
+                    ctime: 1564041671,
+                    email: '29824283@afa.com'
+                }, {
+                    id: 3,
+                    commits: '1撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨和恢复计划给甲方撒飞洒干撒收费的骨1',
+                    parent_id: '13',
+                    idblog: '34',
+                    user_name: '萨芬大师傅就',
+                    ctime: 1564041671,
+                    email: '29824283@afa.com'
+                },
+                ]
+            },
+            components: {
+                pageComponent: pageComponent
+            },
+            mounted() {
+                this.getCommentsList(1);
+                var self = this;
+                axios.get('/getCommentsCount').then(function(res){
+                    self.page.totalCount = res.data[0].sum;
+                })
+            },
+            methods: {
+                convertFormDate: function (num) {
+                    function dFormat(i) { return i < 10 ? "0" + i : i; };
+                    var date = new Date(num);
+                    return date.getFullYear() + '-' + dFormat(date.getMonth() + 1) + '-' +
+                        dFormat(date.getDate());
+                    // + ' ' + dFormat(date.getHours()) +
+                    // ':' + dFormat(date.getMinutes())
+                    // + ':' + dFormat(date.getSeconds());
+                },
+                handleClick: function (comment,index) {
+                    if (confirm('确认删除id为' + comment.id + '的评论吗？'));
+                    var self = this;
+                    axios.post('/api/deleteComentById', {
+                        id: comment.id
+                    }).then(function (res) {
+                        self.commentsList.splice(index, index + 1)
+                        alert('删除id为' + comment.id + '的评论 成功！');
+                    })
+                },
+                getCommentsList: function (activeIndex) {
+                    var self = this;
+                    axios.get('/getCommentsList', {
+                        params: {
+                            perCount: self.page.perCount,
+                            activeIndex: activeIndex
+                        }
+                    }).then(function (res) {
+                        self.commentsList = res.data;
+                    })
+                }
+            }
+        })
+
+    </script>
+</body>
+
+</html>
